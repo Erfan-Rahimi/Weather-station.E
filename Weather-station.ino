@@ -37,7 +37,7 @@
 , an instance of the DHT class is created with DHTPIN and DHTTYPE named dht.
 */
 
-#define DHTPIN 2     // Digital pin connected to the DHT sensor
+const int DHTPIN = 2;    // Digital pin connected to the DHT sensor
 #define DHTTYPE DHT11   // DHT 11
 
 DHT dht(DHTPIN, DHTTYPE); // Initialize DHT sensor
@@ -49,11 +49,9 @@ DHT dht(DHTPIN, DHTTYPE); // Initialize DHT sensor
 const char* ssid = "TN-BZ1772";
 const char* password = "wadHyWyohof5";
 
-/*
- This line here creates an instance of the AsyncWebServer class on port 80, 
+AsyncWebServer server(80);/* This line here creates an instance of the AsyncWebServer class on port 80, 
  which is the default port for HTTP communication.
 */
-AsyncWebServer server(80);
 
 /*
  These are two variables that are declared in order to store tempreture and humidity reading from the sensor at hand
@@ -69,12 +67,11 @@ float hum = 0;
  */
 
 void storeSensorValues() {
-  // Read temperature and humidity from DHT sensor
   temp = dht.readTemperature();
   hum = dht.readHumidity();
 }
 
-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 /*
  The setup initializes all the necessary components and configurations which are needed for the 
@@ -83,20 +80,15 @@ xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
  */
 
 void setup(){
-
-  /*
-   Here we are initializing the serial communication with a baud of 115200. This is very useful 
+  
+  Serial.begin(115200);  /* Here we are initializing the serial communication with a baud of 115200. This is very useful 
    for debugging, as it allows us to print on to the serial monitor to understand what is going on in your code 
    and diagnose issues. You will want to have to do the same.
    */
   
-  Serial.begin(115200);
-  
-  /*
-   This initilizes the DHT sensor. This allows us to prepare the sensor for reading 
+  dht.begin();  /* This initilizes the DHT sensor. This allows us to prepare the sensor for reading 
    the temperature and humidity.
    */
-  dht.begin();
 
   /*
    This block of code initializes the SPIFFS (SPI Flash File System). SPIFFS allows the 
@@ -134,43 +126,36 @@ void setup(){
    client accesses the root URL, the provided lambda function is invoked.
    */
 
-   /*
-    This line sets a route for the rott URL. When a client makes a GET request to the root URL, it serves the 
+  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send(SPIFFS, "/index.html");
+  });   /* This line sets a route for the rott URL. When a client makes a GET request to the root URL, it serves the 
     "index.html" files from the stored file in the SPIFFS. We store the html file with the built in ESP8266 sketch data upload
     that you will have to download.The request line sends the content 
    of the saved html file as the response to the clients request. This will later be the main webpage when 
    the root URL is reached and accessed.
     */
-  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send(SPIFFS, "/index.html");
-  });
 
-  /*
-   This line sets a route for temperature data. When the client makes a GET request to this URL, it serves the 
+  server.on("/temperature", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send_P(200, "text/plain", String(temp).c_str());
+  });  /* This line sets a route for temperature data. When the client makes a GET request to this URL, it serves the 
    live and current temperature values. Although there is some delay. The request line sends the current temperature as the 
    response to the clients request. 
    */
-  server.on("/temperature", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send_P(200, "text/plain", String(temp).c_str());
-  });
 
-  /*
-   This is very similiar to the previous line of code and sets a route for humidity.
+
+  server.on("/humidity", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send_P(200, "text/plain", String(hum).c_str());
+  });  /* This is very similiar to the previous line of code and sets a route for humidity.
    When a client makes a GET request to this URL, it serves the current humidity data.
    This line sends the current humidity as the response to the clients request.
    */
-  server.on("/humidity", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send_P(200, "text/plain", String(hum).c_str());
-  });
 
-  /*
-   This little line starts the web server, enabling the server to listen to incoming HTTP requests.
+  server.begin();  /*   This little line starts the web server, enabling the server to listen to incoming HTTP requests.
    The reason to why we have it here is so that we can initialize the server before the program starts.
    */
-  server.begin();
 }
 
-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 /*
  This is where we continuosly execute the code. Here, we call the readSensorValues function, which reads the current 
@@ -178,7 +163,6 @@ xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
  */
 
 void loop(){
-  // Read sensor values every 2 seconds (adjust as needed)
   storeSensorValues();
-  delay(2000);
+  delay(2000);   // Read sensor values every 2 seconds (adjust as needed)
 }
