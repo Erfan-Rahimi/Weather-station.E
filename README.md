@@ -37,14 +37,18 @@ This project aims to create an Internet of Things (IoT) environmental monitoring
 - Contributions and feedback are welcome! Feel free to fork the project, make improvements, and submit pull requests.
 
 # Credits:
-- This project was created by [Your Name].
+- This project was created by Erfan Rahimi.
 - Special thanks to the contributors and the open-source community for their support and resources.
 
 # License:
-- This project is licensed under the [insert license type] License.
+- This project is licensed under the (I dont have a License.)
 
 # Disclaimer:
 - This project is for educational purposes only. Use it at your own risk. The creator is not responsible for any damage caused by the use of this project.
 
-# References:
-- Links to relevant tutorials, documentation, or resources used in the project.
+## Kontakt
+
+If you have any questions, you can contact me by:
+
+- E-post: erfanrahimi109@gmail.com
+- GitHub: Erfan-rahimi
