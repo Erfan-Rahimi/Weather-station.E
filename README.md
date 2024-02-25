@@ -1,4 +1,4 @@
-# Weather-station
+# Weather-station 🌞
 
 # Description:
 This project aims to create an Internet of Things (IoT) environmental monitoring system using the ESP8266 D1 Mini microcontroller board. The system collects temperature and humidity data from a DHT11 sensor and visualizes it in real-time on a web-based dashboard. It utilizes WebSocket communication for real-time data transmission and Chart.js for dynamic chart generation.
