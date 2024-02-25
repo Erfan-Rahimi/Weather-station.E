@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://code.highcharts.com/highcharts.js"></script>
+
+  <style>
+/*
+In this part, we have styled the web server for a more aesthetic interface for the user.
+*/
+body {
+  /* Decide the wanted height and width */
+  min-width: 310px; 
+  max-width: 800px;
+  height: 400px;
+  margin: 0 auto;
+  /* Install a backround image for your web server */
+  background-image: url('https://images.unsplash.com/photo-1429552077091-836152271555?q=80&w=1885&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D');
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position-x: center;
+  background-position-y: center;
+}
+  
+h2 {
+  /* We have designed the h2 texts in the webserver */
+  font-family: Arial;
+  font-size: 2.5rem;
+  text-align: center;
+  color: white;
+  transition: 0.3s;
+}
+
+h2:hover{
+  /* Added some animations for when a mouse hovers over the h2 text */
+  font-size: 50px;
+  transition: all 0.3s ease 0.1s;
+  cursor: pointer;
+}
+
+  </style>
+</head>
+
+<body>
+    <!-- Heading for the weather station -->
+  <h2>ESP Weather Station</h2>
+    <!-- Containers for temperature and humidity charts -->
+  <div id="chart-temperature" class="container"></div>
+  <div id="chart-humidity" class="container"></div>
+
+<script>
+    // This is JS code, therefore placed within script brackets.
+
+    /*
+    This initializes a new Highcharts chart object. This sets up the 
+    structure and appearance of the chart that will display the data from the sensor.
+    The settings specifies inside the curly braces are attributes such as the chart type, name 
+    and so on...  
+    */
+
+ var temperatureChart = new Highcharts.Chart({
+   /* Render the chart in the specified div
+   It associates the chart with the specific chart-temperature element and 
+   ensures that the chart will be displayed in the desired location on the webpage.
+   */
+    chart: { renderTo: 'chart-temperature' },
+    // Set the chart title
+    title: { text: 'DHT11 Temperature' },
+    series: [{
+      /* Do not show the series in the legend, this insures that data
+      that are for exaple visual effects dont get represented */
+      showInLegend: false,
+      /* This initializes the series with an empty array for data points. 
+      The chart will be updated dynamically with new data points as they become available.*/
+      data: []
+    }],
+
+    /*This defines various options related to how the charts elements
+    are displayed*/
+    plotOptions: {
+      line: {// Set plot options for line chart
+         // Disable animations, just reduces visual clutter.
+        animation: false,
+        // Enable data labels, allows us to see the exact values of data points
+        dataLabels: { enabled: true }
+      },
+      // Set line color, just stylish 
+      series: { color: '#059e8a' }
+    },
+
+
+    // Set X-axis type to datetime, menas that it will display date and time vlaues.
+    xAxis: {
+      type: 'datetime', 
+      // Format X-axis labels. Hours, minutes, seconds
+      dateTimeLabelFormats: { second: '%H:%M:%S' }
+    },
+    // Set Y-axis title
+    yAxis: {
+      title: { text: 'Temperature (Celsius)' }
+    },
+    /* Disable credits. This setting determines whether credits should be displayed on the chart. 
+    By setting enabled to false, credits are disabled, meaning that any attribution information typically displayed on the chart 
+    (such as the Highcharts logo and link) will be hidden.*/
+    credits: { enabled: false }
+  });
+
+  // Here we have the same thing being repeated but for the humidity chart instead 
+  var humidityChart = new Highcharts.Chart({
+    // Render the chart in the specified div
+    chart: { renderTo: 'chart-humidity' },
+    // Set the chart title
+    title: { text: 'DHT11 Humidity' },
+    series: [{
+      // Do not show the series in the legend
+      showInLegend: false,
+      // Initialize with empty data
+      data: []
+    }],
+    plotOptions: {
+      line: {// Set plot options for line chart
+        animation: false, // Disable animations
+        dataLabels: { enabled: true } // Enable data labels
+      }
+    },
+    // Set X-axis type to datetime
+    xAxis: {
+      type: 'datetime',
+      // Format X-axis labels
+      dateTimeLabelFormats: { second: '%H:%M:%S' }
+    },
+     // Set Y-axis title
+    yAxis: {
+      title: { text: 'Humidity (%)' }
+    },
+    // Disable credits
+    credits: { enabled: false }
+  });
+
+    // Function to update temperature and humidity charts at regular intervals
+  setInterval(function() {
+    /* Send HTTP request to retrieve temperature data. 
+    By creating an XMLHttpRequest object, the code can initiate HTTP requests to the server in the background without blocking the main execution thread. 
+    This allows the web page to remain responsive while data is being fetched from the server.*/
+    var temperatureRequest = new XMLHttpRequest();
+    /*
+    This line of code is relevant because it sets up a mechanism to handle changes in the state of the XMLHttpRequest object temperatureRequest. 
+    When the state changes, the assigned function will be invoked to handle the event.
+    By dynamically updating the chart with new data points, this code enables real-time visualization of temperature data on the web page, allowing users to monitor temperature changes over time.
+    The conditional logic ensures that the chart remains responsive and maintains a consistent display, even as new data points are added over time. This enhances the usability and effectiveness of the chart for visualizing temperature trends and patterns.
+    */
+    temperatureRequest.onreadystatechange = function() {
+      /*
+      This condition checks if the readyState property of the XMLHttpRequest 
+      object is equal to 4 (indicating that the request is complete) and if the status 
+      property is equal to 200 (indicating a successful HTTP response).
+      */
+      if (this.readyState == 4 && this.status == 200) {
+        // Parse the response and add data points to temperature chart
+        var x = (new Date()).getTime();
+        //This line parses the response text received from the server into a floating-point number (y). 
+        var y = parseFloat(this.responseText);
+        //  This conditional statement checks the length of the data array in the temperature chart series. If the length exceeds 40 data points, it ensures that the chart remains scrollable by removing the oldest data point (true, true, true). Otherwise, it adds the new data point without scrolling (true, false, true).
+        if (temperatureChart.series[0].data.length > 40) {
+          temperatureChart.series[0].addPoint([x, y], true, true, true);
+        } else {
+          temperatureChart.series[0].addPoint([x, y], true, false, true);
+        }
+      }
+    };
+
+    /*
+    These lines of code are responsible for initiating an asynchronous HTTP GET request to the server to fetch temperature data.
+     This parameter specifies the HTTP method to use for the request, which in this case is GET. GET requests are used to retrieve data from the server.
+     And also, The /temperature parameter specifies the URL endpoint from which to fetch the temperature data. In this case, it's /temperature, indicating that the server should provide temperature data.
+    */
+    temperatureRequest.open("GET", "/temperature", true);
+    //This parameter specifies whether the request should be asynchronous (true) or synchronous (false). We want true, bevause asynchronous requests are better.
+    temperatureRequest.send();
+
+      // Send HTTP request to retrieve humidity data
+      // All of this is exactly the same thing as the codes above, but just for humidity instead.
+    var humidityRequest = new XMLHttpRequest();
+    humidityRequest.onreadystatechange = function() {
+      if (this.readyState == 4 && this.status == 200) {
+        // Parse the response and add data points to humidity chart
+        var x = (new Date()).getTime();
+        var y = parseFloat(this.responseText);
+        if (humidityChart.series[0].data.length > 40) {
+          humidityChart.series[0].addPoint([x, y], true, true, true);
+        } else {
+          humidityChart.series[0].addPoint([x, y], true, false, true);
+        }
+      }
+    };
+    humidityRequest.open("GET", "/humidity", true);
+    humidityRequest.send();
+}, 5000); // Update charts every 1000 milliseconds (5 second)
+</script>
+</body>
+</html>
